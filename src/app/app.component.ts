@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.sass']
 })
 export class AppComponent {
-  title = 'x-virus-simulation';
+  public title: string = '  Quarantine simulation';
+  
+  constructor() {
+  }
+  
 }

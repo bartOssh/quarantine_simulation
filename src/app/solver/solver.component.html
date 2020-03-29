@@ -1,0 +1,70 @@
+<div class="container">
+  <span class="col-1">Beginning population: {{ totalPopulation }} | </span>
+  <span class="col-1">Total Alive Population: {{ totalPopulation - assumption.dead }} | </span>
+  <span class="col-1">Deaths rate: {{ assumption.dead / totalPopulation }} | </span>
+  <div class="alert alert-danger" *ngIf="isConditionMet; else emptyBlock">
+    Final condition has been met. {{ conditions.condition }} rate: {{ conditions.percent }} %.
+  </div>
+  <ng-template #emptyBlock>
+    <div class="alert alert-info">{{ info }}!</div>
+  </ng-template>
+  <div class="row">
+    <div id="solver-svg-window" class="solver col">
+      <svg></svg>
+    </div>
+    <div class="col">
+      <div class="input-color">
+        <input type="text" value="Healthy: {{ totalPopulation - assumption.immune - assumption.dead - assumption.sick }}" />
+        <div class="color-box" style="background-color: #00ff00;"></div>
+      </div>
+      <div class="input-color">
+        <input type="text" value="Infected: {{ assumption.sick }}" />
+        <div class="color-box" style="background-color: #ff3300;"></div>
+      </div>
+      <div class="input-color">
+        <input type="text" value="Immune: {{ assumption.immune }}" />
+        <div class="color-box" style="background-color: #ffff00;"></div>
+      </div>
+      <div class="input-color">
+        <input type="text" value="Dead: {{ assumption.dead }}" />
+        <div class="color-box" style="background-color: #000000;"></div>
+      </div>
+      <div class="border">
+        Population size: <input type="range" name="range" [(ngModel)]="totalPopulation" min="25"  max="1000">
+         {{totalPopulation}} people
+      </div>
+      <div class="border">
+        Quarantine borders for each human: <input type="range" name="range" [(ngModel)]="unitBox" min="25"  max="300">
+        radius of {{unitBox}} m
+      </div>
+      <div class="border">
+        Infection probability <input type="range" name="range" [(ngModel)]="infectionProbability" min="1"  max="100">
+        {{infectionProbability}} %
+      </div>
+      <div class="border">
+        Virus infecting in radius <input type="range" name="range" [(ngModel)]="infectionRadius" min="5"  max="100">
+        {{infectionRadius}} m
+      </div>
+      <div class="border">
+        Death rate <input type="range" name="range" [(ngModel)]="deathRate" min="1"  max="100">
+        {{deathRate}} %
+      </div>
+      <div class="border">
+        Days till recovery <input type="range" name="range" [(ngModel)]="infectionInterval" min="5"  max="70">
+        {{infectionInterval}}
+      </div>
+      <div class="border">
+        Number of infected people at start <input type="range" name="range" [(ngModel)]="infectedAtStart" min="1"  max="80">
+        {{infectedAtStart}} %
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div *ngIf="!isSimulationRunning; else stopBlock">
+      <button class="btn btn-success" (click)="start()">Start New Simulation</button>
+    </div>
+    <ng-template #stopBlock>
+      <button class="btn btn-danger" (click)="stop()">Stop Simulation</button>
+    </ng-template>
+  </div>
+</div>
