@@ -3,7 +3,7 @@
 <p align="center">
     <img 
     width="50%" height="50%" 
-    src="https://github.com/bartOssh/quarantine_simulation_toy/blob/master/assets/covid.png"/>
+    src="https://github.com/bartOssh/quarantine_simulation_toy/blob/master/src/assets/covid.png"/>
 </p>
 
 ## This project is not based on any verified mathematical model. This is meant to be just fun project. 
