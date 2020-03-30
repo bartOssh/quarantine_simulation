@@ -1,6 +1,48 @@
 import { Injectable } from '@angular/core';
-import { WORLD, INTERVAL } from './constants';
+import { WORLD, INTERVAL, MAX_SPEED } from './constants';
 import { Observable, Subject } from 'rxjs';
+
+function randomizeRange(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+interface Box {
+  start: Point;
+  end: Point;
+} 
+
+interface QuarantineBox extends Box {
+  units: number;
+}
+
+class QuarantineBoxes {
+  private grid: QuarantineBox[] = [];
+  constructor(private unitSize: number) {
+    this.setGrid();
+  }
+
+  public allocateToQuarantineBox(): (Box | Position)[] {
+    const index: number = randomizeRange(0, this.grid.length);
+    const box: Box = <Box>this.grid[index];
+    const position: Position = new Position(randomizeRange(box.start.x, box.end.x), randomizeRange(box.start.y, box.end.y));
+    return [box, position];
+  }
+
+  private setGrid() {
+    const startPoint: Point = new Point(0, 0);
+    const xi = Math.floor(WORLD.width / this.unitSize);
+    const yj = Math.floor(WORLD.height / this.unitSize);
+    for (let i = 0; i < xi; i++) {
+      for (let j = 0; j < yj; j++) {
+        const start = new Point(startPoint.x + i * this.unitSize, startPoint.y + j * this.unitSize);
+        const end = new Point(start.x + this.unitSize, start.y + this.unitSize);
+        const units = 0;
+        this.grid.push({start, end, units});
+      }
+    }
+  }
+
+}
 
 class Direction {
   private LEFT: number[] = [-1, 0];
@@ -12,32 +54,33 @@ class Direction {
   private RIGHT_UP: number[] = [1, 1];
   private RIGHT_DOWN: number[] = [1, -1];
   private actualDirection: number[];
-  private allowedTravel: number;
+  private tick: number = 0;
 
-  constructor(unitTravelDistance: number) {
-    this.allowedTravel = unitTravelDistance;
+  constructor(private box: Box) {
+
     this.switchDirection();
   }
 
-  public getNextPosition(startingPosition: Position, actualPosition: Position): Position {
+  public getNextPosition(actualPosition: Position): Position {
     const nextPosition = new Position(
-      actualPosition.x + this.actualDirection[0],
-      actualPosition.y + this.actualDirection[1]
+      actualPosition.x + this.actualDirection[0] * randomizeRange(1, MAX_SPEED),
+      actualPosition.y + this.actualDirection[1] * randomizeRange(1, MAX_SPEED)
     );
-    if (this.isInRange(startingPosition, nextPosition)) {
-      return nextPosition;
+    if (this.isInRange(nextPosition)) {
+      this.tick++;
+      if (this.tick < 20 || Math.random() * 100 < 80 - this.tick) {
+        return nextPosition;
+      }
     }
+    this.tick = 0;
     this.switchDirection();
     return actualPosition;
   }
 
-  private isInRange(startingPosition: Position, actualPosition: Position): boolean {
-    const borders = [startingPosition.x + this.allowedTravel, startingPosition.y + this.allowedTravel];
-    const isXInUnitBorders = actualPosition.x >= startingPosition.x && actualPosition.x <= borders[0];
-    const isYInUnitBorders = actualPosition.y >= startingPosition.y && actualPosition.y <= borders[1];
-    const isXInWorldBorders = actualPosition.x >= 0 && actualPosition.x <= WORLD.width;
-    const isYInWorldBorders = actualPosition.x >= 0 && actualPosition.y <= WORLD.height;
-    return isXInUnitBorders && isYInUnitBorders && isXInWorldBorders && isYInWorldBorders;
+  private isInRange(actualPosition: Position): boolean {
+    const isXInUnitBorders = actualPosition.x >= this.box.start.x && actualPosition.x <= this.box.end.x;
+    const isYInUnitBorders = actualPosition.y >= this.box.start.y && actualPosition.y <= this.box.end.y;
+    return isXInUnitBorders && isYInUnitBorders;
   }
 
   private switchDirection() {
@@ -62,8 +105,14 @@ export enum Color {
   BLACK = '#000000',
 }
 
-export class Position {
+class Point {
   constructor(public x: number, public y: number) {}
+}
+
+export class Position extends Point {
+  constructor(public x: number, public y: number) {
+    super(x, y);
+  }
 
   public inRange(position: Position, radius: number): boolean {
     const dist = Math.sqrt(Math.pow(this.x - position.x, 2) + Math.pow(this.y - position.y, 2));
@@ -86,7 +135,6 @@ enum State {
 
 export interface Human {
   drawingPosition: DrawingPosition;
-  startingPosition: Position;
   direction: Direction;
   state: State;
   tick: number;
@@ -114,6 +162,7 @@ export class PopulationService {
   private epoch: Subject<Human[]> = new Subject<Human[]>();
   private assumption: Subject<EpochAssumption> = new Subject<EpochAssumption>();
   private epochAssumption: EpochAssumption;
+  // private quarantineBoxes: 
 
   constructor() {}
 
@@ -131,11 +180,11 @@ export class PopulationService {
     }
     this.populationSize = populationSize >= 10 ? (populationSize <= 1000 ? populationSize : 1000) : 10;
     this.unitBoxSize =
-      unitBoxSize > 25
+      unitBoxSize > 10
         ? unitBoxSize <= (WORLD.width + WORLD.height) / 2
           ? unitBoxSize
           : (WORLD.width + WORLD.height) / 2
-        : 25;
+        : 10;
     this.infectionProbability =
       infectionProbability > 10 ? infectionProbability <= 100 ? infectionProbability : 100 : 10;
     this.infectionRadius = infectionRadius > 5 ? (infectionRadius <= 100 ? infectionRadius : 100) : 5;
@@ -166,6 +215,7 @@ export class PopulationService {
 
   private setConditions(): void {
     let counter = this.infectedAtStart + 1;
+    const quarantine = new QuarantineBoxes(this.unitBoxSize);
     this.population = new Array(this.populationSize).fill(0).map((_) => {
       counter--;
       let state = State.NONINFECTED;
@@ -174,25 +224,19 @@ export class PopulationService {
         state = State.INFECTED;
         color = Color.RED;
       }
-      const drawPos = new DrawingPosition(
-        this.randomizeRange(0, WORLD.width),
-        this.randomizeRange(0, WORLD.height),
-        color
-      );
+
+      const allocation: (Box|Position)[] = quarantine.allocateToQuarantineBox();
 
       return <Human>{
-        drawingPosition: drawPos,
-        startingPosition: new Position(drawPos.x, drawPos.y),
-        direction: new Direction(this.unitBoxSize),
+        drawingPosition: new DrawingPosition((<Position>allocation[1]).x, (<Position>allocation[1]).y, color),
+        direction: new Direction(<Box>allocation[0]),
         state: state,
         tick: this.sicknessInterval,
       };
     });
   }
 
-  private randomizeRange(min: number, max: number): number {
-    return Math.random() * (max - min) + min;
-  }
+
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -221,7 +265,7 @@ export class PopulationService {
     this.population.forEach((human: Human) => {
 
       if (human.state !== State.DEAD) {
-        const pos: Position = human.direction.getNextPosition(human.startingPosition, <Position>human.drawingPosition);
+        const pos: Position = human.direction.getNextPosition(<Position>human.drawingPosition);
         if (human.state === State.INFECTED) {
           if (human.tick === 0) {
             human.state = this.willRecover() ? State.IMMUNE : State.DEAD;
@@ -265,7 +309,7 @@ export class PopulationService {
   }
 
   private willRecover(): boolean {
-    return this.randomizeRange(0, 100) > this.deathRate;
+    return randomizeRange(0, 100) > this.deathRate;
   }
 
   private becomesInfected(position: Position, infectedPopulation: Position[]): boolean {

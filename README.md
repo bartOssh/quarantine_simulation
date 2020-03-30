@@ -2,11 +2,16 @@
 
 <p align="center">
     <img 
-    width="50%" height="50%" 
+    width="90%" height="90%" 
     src="https://github.com/bartOssh/quarantine_simulation_toy/blob/master/src/assets/covid.png"/>
 </p>
 
-## This project is not based on any verified mathematical model. This is meant to be just fun project. 
+**This project uses basic flat probability model and is not verified by any epidemiology agency.**
+**It simulator has not been confirmed against real life situation ether compared.**
+**Use it only to educate yourself as You like.**
+**I have made it for fun.**
+
+## Development info:
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.0.
 
@@ -36,4 +41,12 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 ## License
 
-  MIT
+
+
+Copyright 2020 Bartosz Lenart
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
