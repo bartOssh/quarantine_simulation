@@ -28,6 +28,7 @@ export class SolverComponent implements OnInit, OnDestroy {
     sick: 0,
     immune: 0,
   };
+  public ticks: number = 0;
 
   public totalPopulation: number = 200;
   public unitBox: number = 30;
@@ -66,7 +67,8 @@ export class SolverComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.subscriptionDestructor))
       .subscribe((assumption: EpochAssumption) => {
         this.assumption = assumption;
-        if (this.hasSimulationBeFinished()) {
+        this.ticks++;
+        if (this.isSimulationFinished()) {
           this.stop();
           this.isConditionMet = true;
         } else if (this.assumption.sick === 0) {
@@ -82,6 +84,7 @@ export class SolverComponent implements OnInit, OnDestroy {
   }
 
   public start() {
+    this.ticks = 0;
     this.populationService.startNewSimulation(
       this.totalPopulation,
       this.unitBox,
@@ -102,7 +105,7 @@ export class SolverComponent implements OnInit, OnDestroy {
     this.info = 'Ready!';
   }
 
-  private hasSimulationBeFinished(): boolean {
+  private isSimulationFinished(): boolean {
     switch (this.conditions.condition) {
       case FinishCondition.DEAD:
         return SolverComponent.getPercentage(this.assumption.dead, this.totalPopulation) >= this.conditions.percent;
