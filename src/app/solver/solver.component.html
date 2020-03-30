@@ -1,7 +1,7 @@
 <div class="container">
   <span class="col-1">Beginning population: {{ totalPopulation }} | </span>
   <span class="col-1">Total Alive Population: {{ totalPopulation - assumption.dead }} | </span>
-  <span class="col-1">Deaths rate: {{ assumption.dead / totalPopulation * 100 | number : '1.2-2' }} | </span>
+  <span class="col-1">Deaths rate: {{ assumption.dead / totalPopulation * 100 | number : '1.2-2' }} % | </span>
   <span class="col-1">Number of days: {{ ticks }} </span>
   <div class="alert alert-danger" *ngIf="isConditionMet; else emptyBlock">
     Final condition has been met. {{ conditions.condition }} rate: {{ conditions.percent }} %.
@@ -47,7 +47,7 @@
         {{infectionRadius}} m
       </div>
       <div class="border">
-        Death rate <input type="range" name="range" [(ngModel)]="deathRate" min="1"  max="100">
+        Probability to die <input type="range" name="range" [(ngModel)]="deathRate" min="1"  max="100">
         {{deathRate}} %
       </div>
       <div class="border">
